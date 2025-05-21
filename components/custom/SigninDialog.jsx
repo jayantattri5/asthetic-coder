@@ -19,7 +19,6 @@ import { api } from "@/convex/_generated/api";
 
 function SignInDialog({ openDialog, closeDialog }) {
 const {userDetail, setUserDetail} = useContext(UserDetailContext);
-console.log("UserDetailContext values:", { userDetail, setUserDetail });
 
 const CreateUser = useMutation(api.users.CreateUser);
     
@@ -33,19 +32,25 @@ const googleLogin = useGoogleLogin({
   
       console.log(userInfo);
       const user = userInfo.data;
-      await CreateUser ({
+
+      const convexUserId = await CreateUser({
         name: user?.name,
         email: user?.email,
         picture: user?.picture,
-        uid: uuid4()
-    })
+        uid: uuid4(),
+    });
+
+    const enrichedUser = {
+        ...user,
+        _id: convexUserId, // <- Attach the convex ID
+      };
 
     if(typeof window !== 'undefined')
     {
         localStorage.setItem('user', JSON.stringify(user));
 
     }
-        setUserDetail(userInfo?.data);
+        setUserDetail(enrichedUser);
         //Save this inside the database
         closeDialog(false);
     },
@@ -60,12 +65,12 @@ const googleLogin = useGoogleLogin({
                     <DialogDescription className="flex flex-col items-center justify-center">
                         <div>
                             <h2 className="font-bold text-2xl text-white p-2">{Lookup.SIGNIN_HEADING}</h2>
-                            <p className="mt-2 text-center p-2">{Lookup.SIGIN_SUBHADING}</p>
+                            <p className="mt-2 text-center p-2">{Lookup.SIGNIN_SUBHEADING}</p>
                             <Button variant="outline" className="mt-6 px-6"
                             onClick={googleLogin}>
                                 Sign In with Google
                             </Button>
-                            <p className="p-4">{Lookup?.SIGNIn_AGREEMENT_TEXT}</p>
+                            <p className="p-4">{Lookup?.SIGNIN_AGREEMENT_TEXT}</p>
                         </div>
                     </DialogDescription>
                 </DialogHeader>
